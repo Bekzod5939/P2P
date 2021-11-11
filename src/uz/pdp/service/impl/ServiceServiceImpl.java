@@ -66,6 +66,14 @@ public class ServiceServiceImpl implements ServiceService {
         return false;
     }
 
+    @Override
+    public boolean checkByNameAndCategoryId(String name, UUID categoryId) {
+        for (Service service : services)
+            if(service.getName().equals(name)&&service.getCategoryId().equals(categoryId))
+                return true;
+        return false;
+    }
+
     public static Service getByName(String name){
         for (Service service : services)
             if(service.getName().equals(name))

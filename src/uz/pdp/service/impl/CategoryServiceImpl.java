@@ -38,6 +38,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     }
 
+    @Override
+    public boolean checkByName(String name) {
+        for (Category category : categories)
+            if(category.getName().equals(name))
+                return true;
+        return false;
+    }
+
     public static Category getCategoryByName(String name){
         for (Category category : categories)
             if(category.getName().equals(name))

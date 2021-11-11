@@ -8,6 +8,7 @@ import uz.pdp.service.interfaces.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Main {
@@ -18,6 +19,8 @@ public class Main {
     static CashBackService cashBackService = new CashBackServiceImpl();
     static CommissionService commissionService = new CommissionServiceImpl();
     static CardHistoryService cardHistoryService = new CardHistoryServiceImpl();
+    static RegionService regionService = new RegionServiceImpl();
+    static DistrictService districtService = new DistrictServiceImpl();
 
     static int option = -1;
     static User crtUser;
@@ -147,12 +150,52 @@ public class Main {
             String phone = scannerStr.next();
 
         } else if (service.getCategoryId().equals(CategoryServiceImpl.getCategoryByName(CategoryEnum.COMMUNAL.name()).getId())) {
+            int ind = 1;
+            ArrayList<Region> regions = regionService.getAll();
+            for (Region region : regions) {
+                System.out.println((ind++) + "." + region.getName());
+            }
+            System.out.println("0.Exit");
+            System.out.print(arrow);
+            option = scannerInt.nextInt();
+            if (option == 0) return;
+
+            if (option < 0 || option >= ind) {
+                System.out.println(wrongOption);
+                return;
+            }
+            Region region = regions.get(option - 1);
+            ArrayList<District> districts = districtService.getByRegionId(region.getId());
+            ind = 1;
+            for (District district : districts) {
+                System.out.println((ind++) + "." + district.getName());
+            }
+            System.out.println("0.Exit");
+            System.out.print(arrow);
+            option = scannerInt.nextInt();
+            if (option == 0) return;
+
+            if (option < 0 || option >= ind) {
+                System.out.println(wrongOption);
+                return;
+            }
+            District district = districts.get(option - 1);
 
 
         } else if (service.getCategoryId().equals(CategoryServiceImpl.getCategoryByName(CategoryEnum.WALLETS.name()).getId())) {
             System.out.println("WALLET ID");
             System.out.print(arrow);
             String id = scannerStr.next();
+        } else {
+            HashMap<String, String> objects = service.getObjects();
+            for (String key : objects.keySet()) {
+                System.out.println(hashStart + key + hashEnd);
+                System.out.print(arrow);
+                String next = scannerStr.next();
+                objects.put(key, next);
+            }
+
+            service.setObjects(objects);
         }
 
 
@@ -215,7 +258,7 @@ public class Main {
 
     private static void getSettings() {
         while (option != 0) {
-            System.out.println("1.Change Commissions\t|\t2.Change CashBacks\t|\t0.Exit");
+            System.out.println("1.Change Commissions\t|\t2.Change CashBacks\t|\t3.Add Category\t|\t4.Add service\t|\t5.Add Region\t|\t6.Add District\t|\t0.Exit");
             System.out.print(arrow);
             option = scannerInt.nextInt();
             switch (option) {
@@ -225,12 +268,126 @@ public class Main {
                 case 2:
                     changeCashBack();
                     break;
+                case 3:
+                    addCategory();
+                    break;
+                case 4:
+                    addService();
+                    break;
+                case 5:
+                    addRegion();
+                    break;
+                case 6:
+                    addDistrict();
+                    break;
                 case 0:
                     break;
                 default:
                     System.out.println(wrongOption);
             }
         }
+    }
+
+    private static void addDistrict() {
+        ArrayList<Region> regions = regionService.getAll();
+        int ind = 1;
+        System.out.println(hashStart + "CHOOSE ONE" + hashEnd);
+        for (Region region: regions) {
+            System.out.println((ind++) + "." + region.getName());
+        }
+        System.out.println("0.Exit");
+        System.out.print(arrow);
+        option = scannerInt.nextInt();
+        if (option == 0) return;
+        if (option < 0 || option >= ind) {
+            System.out.println(wrongOption);
+            return;
+        }
+        Region region = regions.get(option - 1);
+        System.out.println(hashStart + "ENTER the NAME" + hashEnd);
+        System.out.print(arrow);
+        String name = scannerStr.next().toUpperCase();
+        if (districtService.checkByNameAndRegionId(name, region.getId())) {
+            System.out.println(hashStart + "ALREADY EXIST" + hashEnd);
+            return;
+        }
+
+        districtService.add(new District(name,region.getId()));
+
+        System.out.println(success);
+    }
+
+    private static void addRegion() {
+        System.out.println(hashStart + "ENTER the NAME" + hashEnd);
+        System.out.print(arrow);
+        String name = scannerStr.next().toUpperCase();
+        if (regionService.checkByName(name)) {
+            System.out.println(hashStart + "ALREADY EXIST" + hashEnd);
+            return;
+        }
+        regionService.add(new Region(name));
+        System.out.println(success);
+    }
+
+    private static void addService() {
+        ArrayList<Category> categories = categoryService.getAll();
+        int ind = 1;
+        System.out.println(hashStart + "CHOOSE ONE" + hashEnd);
+        for (Category category : categories) {
+            System.out.println((ind++) + "." + category.getName());
+        }
+        System.out.println("0.Exit");
+        System.out.print(arrow);
+        option = scannerInt.nextInt();
+        if (option == 0) return;
+        if (option < 0 || option >= ind) {
+            System.out.println(wrongOption);
+            return;
+        }
+        Category category = categories.get(option - 1);
+        System.out.println(hashStart + "ENTER the NAME" + hashEnd);
+        System.out.print(arrow);
+        String name = scannerStr.next().toUpperCase();
+        if (serviceService.checkByNameAndCategoryId(name, category.getId())) {
+            System.out.println(hashStart + "ALREADY EXIST" + hashEnd);
+            return;
+        }
+
+        Service service = new Service(name, BigDecimal.valueOf(0), category.getId());
+        if (!category.getId().equals(CategoryServiceImpl.getCategoryByName(CategoryEnum.WALLETS.name()).getId()) &&
+                !category.getId().equals(CategoryServiceImpl.getCategoryByName(CategoryEnum.TRANSFER.name()).getId()) &&
+                !category.getId().equals(CategoryServiceImpl.getCategoryByName(CategoryEnum.MOBILE_OPERATORS.name()).getId()) &&
+                !category.getId().equals(CategoryServiceImpl.getCategoryByName(CategoryEnum.COMMUNAL.name()).getId()))
+            while (true) {
+                System.out.println(hashStart + "FIELD NAME" + hashEnd);
+                System.out.println("\"-\" FOR EXIT");
+                System.out.print(arrow);
+                String key = scannerStr.next().toUpperCase();
+                if (key.equals("-")) break;
+                if (service.checkObjectByKey(key)) {
+                    System.out.println(hashStart + "ALREADY EXIST" + hashEnd);
+                    continue;
+                }
+                service.addObject(key, "");
+
+            }
+
+        serviceService.add(service);
+        cashBackService.add(new CashBack(service.getId(), BigDecimal.valueOf(0)));
+        commissionService.add(new Commission(service.getId(), BigDecimal.valueOf(0)));
+        System.out.println(success);
+    }
+
+    private static void addCategory() {
+        System.out.println(hashStart + "ENTER the NAME" + hashEnd);
+        System.out.print(arrow);
+        String name = scannerStr.next().toUpperCase();
+        if (categoryService.checkByName(name)) {
+            System.out.println(hashStart + "ALREADY EXIST" + hashEnd);
+            return;
+        }
+        categoryService.add(new Category(name));
+        System.out.println(success);
     }
 
     private static void changeCashBack() {

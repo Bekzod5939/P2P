@@ -1,20 +1,20 @@
 package uz.pdp.service.interfaces;
 
-import uz.pdp.model.Category;
+import uz.pdp.model.Region;
 import uz.pdp.service.base.BaseService;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-public interface CategoryService extends BaseService<Category, UUID> {
+public interface RegionService extends BaseService<Region, UUID> {
     @Override
-    ArrayList<Category> getAll();
+    ArrayList<Region> getAll();
 
     @Override
-    boolean add(Category category);
+    boolean add(Region region);
 
     @Override
-    Category getById(UUID uuid);
+    Region getById(UUID uuid);
 
     boolean checkByName(String name);
 }

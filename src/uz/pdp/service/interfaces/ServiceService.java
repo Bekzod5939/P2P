@@ -19,4 +19,6 @@ public interface ServiceService extends BaseService<Service, UUID> {
     ArrayList<Service> getByCategoryId(UUID categoryId);
 
     boolean editService(Service service);
+
+    boolean checkByNameAndCategoryId(String name,UUID categoryId);
 }
